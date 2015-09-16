@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 int main(int argc, char *argv[]) {
+	// MIN COMMENT
 
 	static const char filename[] = "ECG.txt";
 	FILE *file = fopen(filename, "r");
