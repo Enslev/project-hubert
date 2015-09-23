@@ -121,3 +121,23 @@ double searchBack(double peaks[], int head, double t2) {
 	return (double) 0.0;
 
 }
+
+int findPeak(int newVal) {
+	static int oldVal = 0;
+	static int ascending = 1;
+
+	if (ascending && oldVal > newVal) {
+		int peak = oldVal;
+		oldVal = newVal;
+		ascending = 0;
+		return peak;
+	}
+
+	if (!ascending && oldVal < newVal) {
+		ascending = 1;
+	}
+
+	oldVal = newVal;
+
+	return 0;
+}
