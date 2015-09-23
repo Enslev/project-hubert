@@ -44,8 +44,16 @@ int main(int argc, char *argv[]){
 	static const char filename[] = "ECG.txt";
 	FILE *file = fopen(filename, "r");
 
-	while (x.data[getPastEntry(&x, 0)] != EOF && counter < 2000){
+	while ( /*x.data[getPastEntry(&x, 0)] != EOF && */ counter < 10000){
 		addNextData( &x, getNextData(file) );
+
+		/*
+		if ( x.data[getPastEntry(&x, 0)] == EOF ){
+			printf("EOF!!!!");
+			break;
+		}
+		*/
+
 		addNextData( &x_low, low_pass(&x, &x_low) );
 		addNextData( &x_high, high_pass(&x_low, &x_high) );
 		addNextData( &x_der, derivative(&x_high) );
@@ -56,12 +64,14 @@ int main(int argc, char *argv[]){
 		QRS(getPastEntry(&x_mwi, 0));
 
 
-		//printf("x_mwi: %d %d", n, getPastEntry(&x_mwi, 0));
-
+		//printf("x_mwi: %d %d \n", n, getPastEntry(&x_mwi, 0));
+		//printf("n: %d - %d \n", n, x.data[x.next]);
+		//printf("n: %d \n", n);
+		//printf("%d", getPastEntry(&x, 0));
 		//printf("\n");
-
 		n++;
 		counter++;
+
 	}
 
 	return 0;

@@ -3,34 +3,41 @@ double searchBack(double peaks[], int head, double t2);
 int findPeak(int newValue);
 
 void QRS(int value) {
-	static double SPKF = 0;			// An estimate of the value of an R-peak.
-	static double NPKF = 0;			// An estimate of the value of a noise peak.
-	static double THRESHOLD1 = 0;	// All peaks higher than this value is classified as an R-peak.
-	static double THRESHOLD2 = 0;	// Used during the searchback procedure (Generally 0.5 * THRESHOLD1).
-	static double RR_AVERAGE1 = 0;	// The average of the 8 most recent RR-intervals regardless of their value.
-	static double RR_AVERAGE2 = 0;	// The average of the 8 most recent RR-intervals, for which the corresponding R-peak is higher than THRESHOLD1.
-	static double RR_LOW = 0;		// Defined as 92% of RR_AVERAGE2.
-	static double RR_HIGH = 0;		// Defined as 116% of RR_AVERAGE2.
-	static double RR_MISS = 0;		// Defined as 166% of RR_AVERAGE2.
+	static double SPKF = 5000;			// An estimate of the value of an R-peak.
+	static double NPKF = 700;			// An estimate of the value of a noise peak.
+	static double THRESHOLD1 = 3500;	// All peaks higher than this value is classified as an R-peak.
+	static double THRESHOLD2 = 1750;	// Used during the searchback procedure (Generally 0.5 * THRESHOLD1).
+	static double RR_AVERAGE1 = 165;	// The average of the 8 most recent RR-intervals regardless of their value.
+	static double RR_AVERAGE2 = 165;	// The average of the 8 most recent RR-intervals, for which the corresponding R-peak is higher than THRESHOLD1.
+	static double RR_LOW = 150;		// Defined as 92% of RR_AVERAGE2.
+	static double RR_HIGH = 190;		// Defined as 116% of RR_AVERAGE2.
+	static double RR_MISS = 270;		// Defined as 166% of RR_AVERAGE2.
 
 	static int timer = 0;
+	static int n = 0;
+	static int RR_misses = 0;
 
 	static double peaks[500];
 	static double rPeaks[500];
-	static double recentRR[8];
-	static double recentRR_OK[8];
+	static int recentRR[8] = { 0 };
+	static int recentRR_OK[8] = { 0 };
 	static int peakHead = 0;
 	static int rHead = 0;
 	static int recentHead = 0;
 	static int recentOkHead = 0;
 
-	timer++;
 
+	timer++;
+	n++;
+
+	//printf("n: %d, t: %d \n", n, timer);
 
 	int peak = findPeak(value);
 	if (!peak) {
 		return;
 	}
+
+	//printf("Peak: %d\n", n);
 
 	int peakIndex = peakHead++ % 500;
 	peaks[peakIndex] = peak;
@@ -42,12 +49,28 @@ void QRS(int value) {
 		return;
 	}
 
+
+	// TODO: timer is not exactly RR peak, it's also reset for peaks that are not R-peaks,
+	// but pass the thresholds. Every R-peak has such a peak immediately after
 	// Calculate RR
 	int RR = timer;
 	timer = 0;
 
+
 	if (RR > RR_LOW &&
 		RR < RR_HIGH) {
+
+		RR_misses = 0;
+
+		if (peak < 2000){
+			printf("WARNING: R-peak below 2000 \n");
+		};
+
+		int pulse = (int) (250.0*60.0)/((double) RR );
+
+		printf("R-Peak: %d : %.2f : %d ", n, n/250.0, peak);
+		printf(", Pulse: %d", pulse);
+		printf("\n");
 
 		//Store  peak in RPeaks
 		int rIndex = rHead++ % 500;
@@ -61,6 +84,12 @@ void QRS(int value) {
 		int rrOkIndex =  recentOkHead++ % 8;
 		recentRR_OK[rrOkIndex] = RR;
 
+		/*
+		for (int i = 0; i < 8; i++){
+			printf("recentRR[%d]: %d \n", i, recentRR[i]);
+		}
+		*/
+
 		SPKF = 0.125 * peak + 0.875 * SPKF;
 		RR_AVERAGE1 = averageRR(recentRR, 8);
 		RR_AVERAGE2 = averageRR(recentRR_OK, 8);
@@ -70,9 +99,17 @@ void QRS(int value) {
 		THRESHOLD1 = NPKF + 0.25 * (SPKF - NPKF);
 		THRESHOLD2 = 0.5 * THRESHOLD1;
 
-		printf("%d \n", peak);
-
 		return;
+	}
+
+	// Correct timer, it should calc the time between real R-peaks
+	timer += RR;
+
+	// count misses
+	RR_misses++;
+
+	if (RR_misses == 5){
+		printf("WARNING: 5 successive R-peaks missed");
 	}
 
 	if (RR <= RR_MISS) {
@@ -101,6 +138,13 @@ void QRS(int value) {
 }
 
 double averageRR(int rrArr[], int size) {
+
+	/*
+	for (int i = 0; i < 8; i++){
+		printf("rrArr[%d]: %d \n", i, rrArr[i]);
+	}
+	*/
+
 	double avg = 0;
 	int count = 0;
 	for (int i = 0; i < size; i++) {
@@ -136,8 +180,6 @@ int findPeak(int newVal) {
 		int peak = oldVal;
 		oldVal = newVal;
 		ascending = 0;
-
-		//printf("Peak detected!!");
 
 		return peak;
 	}
