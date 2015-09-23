@@ -1,1 +1,3 @@
-main.d: ../main.c
+main.d: ../main.c ../sensor.h
+
+../sensor.h:
