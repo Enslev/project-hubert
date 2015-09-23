@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "sensor.h"
-
+#include "qrs.h"
 
 struct xs {
 	int next;
@@ -44,7 +44,7 @@ int main(int argc, char *argv[]){
 	static const char filename[] = "ECG.txt";
 	FILE *file = fopen(filename, "r");
 
-	while (x.data[getPastEntry(&x, 0)] != EOF && counter < 20){
+	while (x.data[getPastEntry(&x, 0)] != EOF && counter < 2000){
 		addNextData( &x, getNextData(file) );
 		addNextData( &x_low, low_pass(&x, &x_low) );
 		addNextData( &x_high, high_pass(&x_low, &x_high) );
@@ -52,9 +52,13 @@ int main(int argc, char *argv[]){
 		addNextData( &x_sqr, square(&x_der) );
 		addNextData( &x_mwi, moving_window_integration(&x_sqr) );
 
-		printf("x_mwi: %d %d", n, getPastEntry(&x_mwi, 0));
+		// send x_mwi to QRS
+		QRS(getPastEntry(&x_mwi, 0));
 
-		printf("\n");
+
+		//printf("x_mwi: %d %d", n, getPastEntry(&x_mwi, 0));
+
+		//printf("\n");
 
 		n++;
 		counter++;

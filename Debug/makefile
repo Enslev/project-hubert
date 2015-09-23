@@ -28,7 +28,7 @@ all: project-hubert
 project-hubert: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C Linker'
-	gcc  -o "project-hubert" $(OBJS) $(USER_OBJS) $(LIBS)
+	gcc -pg -o "project-hubert" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
