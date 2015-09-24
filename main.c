@@ -41,7 +41,7 @@ int main(int argc, char *argv[]){
 	}
 
 
-	static const char filename[] = "ECG900K.txt";
+	static const char filename[] = "ECG.txt";
 	FILE *file = fopen(filename, "r");
 
 	while ( /*x.data[getPastEntry(&x, 0)] != EOF && */ counter < 1000){
