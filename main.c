@@ -41,10 +41,10 @@ int main(int argc, char *argv[]){
 	}
 
 
-	static const char filename[] = "ECG.txt";
+	static const char filename[] = "ECG900K.txt";
 	FILE *file = fopen(filename, "r");
 
-	while ( /*x.data[getPastEntry(&x, 0)] != EOF && */ counter < 10000){
+	while ( /*x.data[getPastEntry(&x, 0)] != EOF && */ counter < 1000){
 		addNextData( &x, getNextData(file) );
 
 		/*
@@ -60,6 +60,8 @@ int main(int argc, char *argv[]){
 		addNextData( &x_sqr, square(&x_der) );
 		addNextData( &x_mwi, moving_window_integration(&x_sqr) );
 
+		//printf("%d\n", getPastEntry(&x_mwi, 0));
+
 		// send x_mwi to QRS
 		QRS(getPastEntry(&x_mwi, 0));
 
@@ -67,7 +69,7 @@ int main(int argc, char *argv[]){
 		//printf("x_mwi: %d %d \n", n, getPastEntry(&x_mwi, 0));
 		//printf("n: %d - %d \n", n, x.data[x.next]);
 		//printf("n: %d \n", n);
-		//printf("%d", getPastEntry(&x, 0));
+
 		//printf("\n");
 		n++;
 		counter++;
