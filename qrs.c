@@ -139,6 +139,10 @@ void QRS(int value) {
 	// Correct timer, it should calc the time between real R-peaks
 	//timer += RR;
 
+	if (RR <= RR_MISS) {
+		return;
+	}
+
 	// count misses
 	RR_misses++;
 
@@ -146,9 +150,6 @@ void QRS(int value) {
 		printf("WARNING: 5 successive R-peaks missed \n");
 	}
 
-	if (RR <= RR_MISS) {
-		return;
-	}
 
 	double peak2[2];
 	int peak2Index = searchBack(peaks, peakHead, THRESHOLD2);

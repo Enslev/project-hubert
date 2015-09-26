@@ -116,8 +116,8 @@ int getPastEntry(struct xs *s, int entry){
 }
 
 int low_pass(struct xs *x, struct xs *y){
-	int y1 = getPastEntry(y, 1-1);
-	int y2 = getPastEntry(y, 2-1);
+	int y1 = getPastEntry(y, 0); // (y, 1-1)
+	int y2 = getPastEntry(y, 1); // (y, 2-1)
 	int xn = getPastEntry(x, 0);
 	int x6 = getPastEntry(x, 6);
 	int x12 = getPastEntry(x, 12);
@@ -127,7 +127,7 @@ int low_pass(struct xs *x, struct xs *y){
 
 
 int high_pass(struct xs *x, struct xs *y){
-	int y1 = getPastEntry(y, 1-1);
+	int y1 = getPastEntry(y, 0); // (y, 1-1)
 	int xn = getPastEntry(x, 0);
 	int x16 = getPastEntry(x, 16);
 	int x17 = getPastEntry(x, 17);
