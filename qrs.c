@@ -27,6 +27,7 @@ void QRS(int value) {
 
 	static int n = 0;
 	static double sampleRate = 250.0;
+	static double totalGroupDelay = 0.1875; // 25 ms + 80 ms + 10 ms + 72.5 ms = 187.5 ms
 
 	n++;
 
@@ -38,7 +39,6 @@ void QRS(int value) {
 	if (RR == RR_MISS * 5){
 		printf("WARNING: 5 successive R-peaks missed \n");
 	}
-
 
 	int peak = findPeak(value);
 	if (!peak) {
@@ -64,8 +64,9 @@ void QRS(int value) {
 		};
 
 		int pulse = (int) (sampleRate * 60.0) / ((double) RR );
+		double time = (n/sampleRate) - totalGroupDelay;
 
-		printf("time: %.2f s, value: %d, pulse: %d ", n/sampleRate, peak, pulse);
+		printf("time: %.2f s, value: %d, pulse: %d ", time, peak, pulse);
 		printf("\n");
 
 		int rIndex = rHead++ % 500;
@@ -96,6 +97,7 @@ void QRS(int value) {
 		return;
 	}
 
+	// searchback
 	double peak2[2];
 	int peak2Index = searchBack(peaks, peakHead, THRESHOLD2);
 	peak2[0] = peaks[peak2Index][0];

@@ -4,16 +4,22 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+../filterStorage.c \
+../filters.c \
 ../main.c \
 ../qrs.c \
 ../sensor.c 
 
 OBJS += \
+./filterStorage.o \
+./filters.o \
 ./main.o \
 ./qrs.o \
 ./sensor.o 
 
 C_DEPS += \
+./filterStorage.d \
+./filters.d \
 ./main.d \
 ./qrs.d \
 ./sensor.d 
