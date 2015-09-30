@@ -1,0 +1,13 @@
+dp PC(
+	){
+	reg count : ns(32);
+	sig c: ns(32);
+	always{
+		//$display($dec, "Cycle: ", $cycle); // note : For debuging purposes.
+		$display($dec, "count:", count); // note : For debugging purposes.
+		$display($dec, "c:", c); // note : For debugging purposes.
+		
+		count = count + 1;
+		c = count;
+		}
+}

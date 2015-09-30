@@ -1,0 +1,54 @@
+dp PC(
+	){
+	reg count : ns(32);
+	sig c: ns(32);
+	always{
+		//$display($dec, "Cycle: ", $cycle); // note : For debuging purposes.
+		$display($dec, "count:", count); // note : For debugging purposes.
+		$display($dec, "c:", c); // note : For debugging purposes.
+		
+		count = count + 1;
+		c = count;
+		}
+}
+
+dp adder(
+	in x, y : tc(32);
+	out o : tc(32)
+	) { 
+	always {
+		o = x + y;
+	}
+}
+
+dp setup(
+	out a,b : tc(32)
+	) {
+	always {
+		a = 17;
+		b = 3;
+	}
+}
+
+dp display (
+	in a,b,o : tc(32)
+	) {
+	always {
+		$display($dec," A: ",a ,$dec, " B: ", b, $dec, " Sum: ", o);	
+	}
+}
+
+dp adder_sys {
+	sig a : tc(32);
+	sig b : tc(32);
+	sig o : tc(32);
+
+	use setup(a,b);
+	use adder(a,b,o);
+	use display(a,b,o);
+
+}
+
+system sys {
+  adder_sys;
+}

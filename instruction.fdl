@@ -1,0 +1,47 @@
+ipblock instmem(
+	in address : ns(5);
+	in wr,rd : ns(1);
+	in idata : ns(32);
+	out odata : ns(32)
+) {
+	iptype "ram";
+	ipparm "size=251";
+	ipparm "wl=32";
+	ipparm "file=program.txt";
+}
+
+dp PC(
+	out cout : ns(32)
+	){
+	reg c : ns(5);
+	always{
+		c = c + 1;
+		cout = c;
+		}
+}
+
+dp display(
+	in i : ns(32)
+) {
+	always {
+		$display($dec, "instruction: ", i);
+	}
+}
+
+
+dp inst (
+	in adr : ns(5)
+) {
+  sig w, r : ns(1);
+  sig i, o : ns(32);
+
+  always {w = 0; r = 1; i = 0;}
+
+  use instmem(adr, w, r, i, o);
+  use display(o);
+
+}
+system instruction {
+	PC(adr);
+	inst(adr);
+}

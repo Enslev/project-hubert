@@ -1,0 +1,65 @@
+dp register(
+	in asel, bsel : ns(3);
+	in storeenable : ns(1);
+	in storesel : ns(3);
+	in storedata : tc(32);
+	out a, b: tc(32)
+) {
+	reg r0, r1, r2, r3, r4, r5, r6, r7 : tc(32);
+	always {
+		r1 = (storeenable == 1 & storesel == 1) ? storedata : r1;
+		r2 = (storeenable == 1 & storesel == 2) ? storedata : r2;
+		r3 = (storeenable == 1 & storesel == 3) ? storedata : r3;
+		r4 = (storeenable == 1 & storesel == 4) ? storedata : r4;
+		r5 = (storeenable == 1 & storesel == 5) ? storedata : r5;
+		r6 = (storeenable == 1 & storesel == 6) ? storedata : r6;
+		r7 = (storeenable == 1 & storesel == 7) ? storedata : r7; 
+
+		a = (asel == 0) ? r0:
+			(asel == 1) ? r1:
+			(asel == 2) ? r2:
+			(asel == 3) ? r3:
+			(asel == 4) ? r4:
+			(asel == 5) ? r5:
+			(asel == 6) ? r6: r7;
+
+		b = (bsel == 0) ? r0:
+			(bsel == 1) ? r1:
+			(bsel == 2) ? r2:
+			(bsel == 3) ? r3:
+			(bsel == 4) ? r4:
+			(bsel == 5) ? r5:
+			(bsel == 6) ? r6: r7;
+	}
+}
+
+dp testReg(
+	in a, b : tc(32);
+	out asel, bsel : ns(3);
+	out storeenable : ns(1);
+	out storesel : ns(3);
+	out storedata : tc(32)
+ ) {
+	always{
+		$display($dec, "Cycle:", $cycle, ", A=", a, ", B=", b, ", asel=", asel, ", bsel=", bsel);
+		$display($dec, "storeenable=", storeenable, ", storesel=", storesel, ", storedata=", storedata);
+		$display($dec, "");
+	}
+	sfg test_0 { asel=3; bsel=6; storeenable=1; storesel=3; storedata=17; }
+	sfg test_1 { asel=3; bsel=6; storeenable=1; storesel=6; storedata=3; }
+	sfg test_2 { asel=3; bsel=6; storeenable=0; storesel=3; storedata=17; }
+}
+
+// note : State machine to control the adder testbench.
+fsm f_testbench(testReg) {
+	initial s0; // begin with state s0
+	state s1, s2; // other states are: s1, s2
+	@s0 (test_0) -> s1; // run test_0 and go to s1
+	@s1 (test_1) -> s2; // run test_1 and go to s2
+	@s2 (test_2) -> s0; // run test_2 and go to s0
+}
+
+system myFirstSystem {
+	register(asel, bsel, storeenable, storesel, storedata, a, b);
+	testReg(a, b, asel, bsel, storeenable, storesel, storedata);
+}
