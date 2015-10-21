@@ -1,8 +1,8 @@
 ipblock instmem(
-	in address : ns(5);
-	in wr,rd : ns(1);
-	in idata : ns(32);
-	out odata : ns(32)
+	in address	: ns(5);
+	in wr,rd 		: ns(1);
+	in idata 		: ns(32);
+	out odata 	: ns(32)
 ) {
 	iptype "ram";
 	ipparm "size=251";
@@ -11,7 +11,9 @@ ipblock instmem(
 }
 
 dp PC(
-	out cout : ns(32)
+	//in jumpto : ns(8);
+	//in sel    : ns(1);
+	out cout 	: ns(32)
 	){
 	reg c : ns(5);
 	always{
@@ -24,7 +26,7 @@ dp display(
 	in i : ns(32)
 ) {
 	always {
-		$display($dec, "instruction: ", i);
+		$display($dec, "instruction: ", i, "   clock: ", $cycle);
 	}
 }
 
@@ -41,7 +43,7 @@ dp inst (
   use display(o);
 
 }
-system instruction {
+system CPU {
 	PC(adr);
 	inst(adr);
 }
