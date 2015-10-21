@@ -75,20 +75,22 @@ dp testReg(
 	out sel3 : ns(2)
  ) {
 	always{
-		$display($dec, "Cycle:", $cycle, ", A=", a, ", B=", b, ", asel=", asel, ", bsel=", bsel);
+		$display($dec, "Cycle:", $cycle, ", Aout=", a, ", Bout=", b, ", asel=", asel, ", bsel=", bsel);
 		$display($dec, "storeenable=", storeenable, ", storesel=", storesel, ", storedata=", storedata);
 
 		$display($dec, "");
 	}
-	/*
-	sfg test_0 { asel=3; bsel=6; storeenable=1; storesel=1; storedata=27; sel1 = 0; sel2 = 0; sel3 = 0; }
-	sfg test_1 { asel=1; bsel=6; storeenable=1; storesel=2; storedata=3; sel1 = 0; sel2 = 0; sel3 = 1; }
-	sfg test_2 { asel=1; bsel=2; storeenable=0; storesel=3; storedata=17; sel1 = 1; sel2 = 1; sel3 = 0; }
-	*/
 
-	/*
+	sfg test_0 { asel=3; bsel=6; storeenable=1; storesel=1; storedata=6; sel1 = 0; sel2 = 0; sel3 = 0; }
+	sfg test_1 { asel=1; bsel=6; storeenable=1; storesel=2; storedata=3; sel1 = 0; sel2 = 0; sel3 = 0; }
+	sfg test_2 { asel=1; bsel=2; storeenable=0; storesel=3; storedata=17; sel1 = 0; sel2 = 1; sel3 = 0; }
+	
+
+	
+
+	/*	
 	// mux3 test bla
-	sfg test_0 { asel=3; bsel=6; storeenable=1; storesel=1; storedata=16; sel1 = 1; sel2 = 0; sel3 = 0; }
+	sfg test_0 { asel=3; bsel=6; storeenable=1; storesel=1; storedata=5; sel1 = 1; sel2 = 0; sel3 = 0; }
 	sfg test_1 { asel=1; bsel=6; storeenable=1; storesel=2; storedata=3; sel1 = 1; sel2 = 1; sel3 = 1; }
 	sfg test_2 { asel=1; bsel=2; storeenable=0; storesel=3; storedata=17; sel1 = 1; sel2 = 1; sel3 = 0; }
 	*/
@@ -100,11 +102,12 @@ dp testReg(
 	sfg test_2 { asel=1; bsel=4; storeenable=0; storesel=3; storedata=17; sel1 = 1; sel2 = 1; sel3 = 0; }
 	*/
 
+	/*
 	// test mux1
 	sfg test_0 { asel=1; bsel=1; storeenable=1; storesel=1; storedata=3; sel1 = 0; sel2 = 0; sel3 = 0; }
 	sfg test_1 { asel=5; bsel=6; storeenable=1; storesel=3; storedata=4; sel1 = 1; sel2 = 1; sel3 = 1; }
 	sfg test_2 { asel=1; bsel=4; storeenable=0; storesel=3; storedata=17; sel1 = 1; sel2 = 1; sel3 = 0; }
-
+	*/
 	
 }
 
@@ -119,13 +122,13 @@ fsm f_testbench(testReg) {
 
 system myFirstSystem {
 	
-	/*
+	
 	register(asel, r1, storeenable, r2, r3, a, b);
 	mux1(sel1, bsel, a, r1);
 	mux2(sel2, storesel, a, r2);
 	mux3(sel3, storedata, a, b, r3);
 	testReg(a, b, asel, bsel, storeenable, storesel, storedata, sel1, sel2, sel3);
-	*/
+	
 
 	/*
 	register(asel, bsel, storeenable, storesel, r3, a, b);	
