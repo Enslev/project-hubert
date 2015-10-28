@@ -1,0 +1,58 @@
+$option "vcd"
+dp div(
+	in A, B : tc(32);
+	in start : ns(1);
+	out C : tc(32);
+	out done : ns(1)
+	) { 
+	reg Q, R, D : tc(32);
+	$trace(Q, "divisionQ.txt");
+	$trace(R, "divisionR.txt");
+	always {
+		//$display($dec, "R= ", R);
+		// A must be >= B for this to work
+		D = (done == 1) ? 0 : (start == 1) ? B : D;
+		R = (done == 1) ? 0 : (start == 1) ? A : 
+				(R-D < D) ? R : R-D;
+		Q = (done == 1) ? 0 : (R-D < D) ? Q : Q+1;
+		done = (R-D < D) ? 1 : 0;
+		C = Q;
+
+
+	}
+}
+
+dp testReg(
+	in C : tc(32);
+	in done : ns(1);
+	out A, B : tc(32);
+	out start : ns(1)
+ ) {
+	always{
+		$display($dec, "Cycle: ", $cycle);
+		//$display($dec, "Cycle:", $cycle, ", PC=", pc, ", Aout=", a, ", Bout=", b, ", asel=", asel, ", bsel=", bsel);
+		$display($dec, "A=", A, ", B=", B, ", C=", C, ", start=", start, ", done=", done);
+	}
+
+	sfg test_0 { A = 3; B = 2; start = 1; }
+	sfg test_1 { A = 0; B = 0; start = 0; }
+	sfg test_2 { A = 20; B = 2; start = 1; }
+	sfg test_3 { A = 0; B = 0; start = 0; }
+}
+
+
+fsm f_testbench(testReg) {
+	initial s0;
+	state s1, s2 ,s3;
+
+	@s0 (test_0) -> s1;
+	@s1 (test_1) -> s2;
+	@s2 (test_2) -> s3;
+	@s3 (test_3) -> s3;
+
+}
+
+system mySystem {
+	div(A, B, start, C, done);
+	testReg(C, done, A, B, start);
+}
