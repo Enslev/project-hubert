@@ -141,8 +141,52 @@ dp controller(
 ){
 	always {
 
-		reg_storeEnable = (opcode == 4) ? 1 : 0;
+		/*
+		MOVE:  3, reg_storeEnable = 1, muxregsel = 1
+		MOVEi: 4, reg_storeEnable = 1
 
+		BZERO: 5, jumpEnable = zero, 
+		BNEG; 6, jumpEnable = neg
+		BRANCH: 7, jumpEnable = 1
+
+		ADD:  8, reg_storeEnable = 1, muxregsel = 2, muxalusel = 1
+		ADDi: 9, reg_storeEnable = 1, muxregsel = 2
+		SUB:  10, reg_storeEnable = 1, alu_sel = 1, muxregsel = 2, muxalusel = 1
+		*/
+
+		/*
+		reg_storeEnable = (opcode == 3 | opcode == 4 | opcode == 8 | opcode == 9 | opcode == 10) ? 1 : 0;
+		alu_sel = (opcode 10) ? 1 : 0;
+		
+		muxregsel = (opcode == 3) ? 1 : 
+					(opcode == 8 | opcode == 9 | opcode == 10) 2 : 0;
+		muxalusel = (opcode == 8 | opcode == 10) ? 1 : 0;
+		
+		jumpEnable = 	(opcode == 5) ? zero : 
+						(opcode == 6) ? neg : 
+						(opcode == 7) ? 1 : 0;
+		*/
+
+
+		reg_storeEnable = 	(opcode == 3) ? 1 :
+							(opcode == 4) ? 1 :
+							(opcode == 8) ? 1 :
+							(opcode == 9) ? 1 :
+							(opcode == 10) ? 1 : 0;
+
+		alu_sel = (opcode == 10) ? 1 : 0;
+		
+		muxregsel = (opcode == 3) ? 1 : 
+					(opcode == 8) ? 2 :
+					(opcode == 9) ? 2 :
+					(opcode == 10) ? 2 : 0;
+		
+		muxalusel = (opcode == 8) ? 1 :
+					(opcode == 10) ? 1 : 0;
+		
+		jumpEnable = 	(opcode == 5) ? zero : 
+						(opcode == 6) ? neg : 
+						(opcode == 7) ? 1 : 0;
 
 	}
 }
@@ -151,7 +195,7 @@ dp CPU()
 {
 	//PC
 	sig pc_out : ns(32);
-	
+
 	// ALU
 	sig zero, neg : ns(1);
 	sig alu_out : tc(32);
