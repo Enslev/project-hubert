@@ -26,7 +26,7 @@ dp display(
 	in i : ns(32)
 ) {
 	always {
-		$display($dec, "instruction: ", i, "   clock: ", $cycle);
+		$display($bin, "instruction: ", i, "   clock: ", $cycle);
 	}
 }
 

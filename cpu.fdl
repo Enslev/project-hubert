@@ -1,19 +1,31 @@
 $option "vcd"
 dp PC(
-	in jumpto : ns(10);
-	in select : ns(2);
+	in jumpTo : ns(10);
+	in select : ns(1);
 	out cout  : ns(32)
 	){
 	reg c : ns(10);
-	$trace(c, "pc.txt");
+	
+	$trace(cout, "traces/cout.seq");
+	
 	always{
 
-		c = (select == 1) ? c + 1: 
-				(select == 2) ? jumpto: c;
-
+		c = (select == 1) ? jumpTo: c + 1;
 		cout = c;
 
 	}
+}
+
+ipblock instmem(
+	in address	: ns(5);
+	in wr,rd 	: ns(1);
+	in idata 	: ns(32);
+	out odata 	: ns(32)
+) {
+	iptype "ram";
+	ipparm "size=251";
+	ipparm "wl=32";
+	ipparm "file=instructions.txt";
 }
 
 dp add(
@@ -34,53 +46,23 @@ dp sub(
 	}
 }
 
-dp div(
-	in A, B : tc(32);
-	in start : ns(1);
-	out C : tc(32);
-	out done : ns(1)
-	) { 
-	reg Q, R, D : tc(32);
-	always {
-		$display($dec, "R= ", R);
-		// A must be >= B for this to work
-		D = (done == 1) ? 0 : (start == 1) ? B : D;
-		R = (done == 1) ? 0 : (start == 1) ? A : 
-				(R-D < D) ? R : R-D;
-		Q = (done == 1) ? 0 : (R-D < D) ? Q : Q+1;
-		done = (R-D < D) ? 1 : 0;
-		C = Q;
-
-	}
-}
-
 dp alu(
+	in S : ns(1);
 	in A, B : tc(32);
-	in S : ns(2);
-	in start_alu : ns(1);
 	out R : tc(32);
 	out Z : ns(1);
-	out N : ns(1);
-	out done_alu : ns(1)
+	out N : ns(1)
 ) {
-	sig Radd, Rsub, Rdiv : tc(32);
-	sig done : ns(1);
+	sig Radd, Rsub : tc(32);
 
 	use add(A, B, Radd);
 	use sub(A, B, Rsub);
-	use div(A, B, start_alu, Rdiv, done);
-	
 
 	always {
-		R = (S == 0) ? Radd : 
-			(S == 1) ? Rsub : Rdiv;
+		R = (S == 0) ? Radd : Rsub;
 
 		N = (R < 0) ? 1 : 0;
 		Z = (R == 0) ? 1 : 0;
-		
-		done_alu =  (S == 0) ? 1 :
-					(S == 1) ? 1 : done;
-
 	}
 
 }
@@ -139,96 +121,100 @@ dp register(
 			(bsel == 5) ? r5:
 			(bsel == 6) ? r6: r7;
 	}
+
+	$trace(r1, "traces/reg_r1.seq");
+	$trace(storeenable, "traces/reg_storeenable.seq");
+	$trace(storedata, "traces/reg_storedata.seq");
+	$trace(storesel, "traces/reg_storesel.seq");
+
 }
 
-dp testReg(
-	in a, b : tc(32);
-	in pc : ns(32);
+
+
+dp controller(
+	in opcode : ns(4);
 	in zero, neg : ns(1);
-	in done_alu : ns(1);
 
-	out asel, bsel : ns(5);
-	out storeenable : ns(1);
-	out storesel : ns(3);
-	out storedata : tc(32);
+	out reg_storeEnable : ns(1); 
 	out muxregsel : ns(2);
-	out pcjump : ns(32);
-	out pcselect : ns(2);
-	out operand : tc(32);
-	out alusel : ns(2);
-	out muxalusel : ns(1);
-	out start_alu : ns(1)
- ) {
- 	reg regzero, regneg, done : ns(1);
- 	
- 	
-	always{
-		$display($dec, "Cycle:", $cycle, ", PC=", pc, ", Aout=", a, ", Bout=", b, ", asel=", asel, ", bsel=", bsel);
-		$display($dec, "storeenable=", storeenable, ", storesel=", storesel, ", storedata=", storedata);
-
-
-		$display($dec, "");
-		regzero = zero;
-		regneg = neg;
-	}
-
-	
-	sfg init 			{ 	asel=1; bsel=0; storeenable=0; storesel=0; storedata=0; 
-							muxregsel = 0; pcjump = 0; pcselect = 0; 
-							operand = 3; alusel = 2; muxalusel = 0; start_alu = 1;}
-	
-	sfg compute 		{ 	asel=1; bsel=0; storeenable=0; storesel=0; storedata=0; 
-							muxregsel = 0; pcjump = 0; pcselect = 0; 
-							operand = 3; alusel = 2; muxalusel = 0; start_alu = 1;}
-	
-	sfg checkAluDone 	{ 	asel=0; bsel=0; storeenable=0; storesel=0; storedata=0; 
-							muxregsel = 0; pcjump = 0; pcselect = 0; operand = 0; 
-							alusel = 0; muxalusel = 0; start_alu = 0;
-							
-							done = (alusel == 2) ? done_alu : 1 ;
-						}
-	
-	sfg incpc 			{ 	asel=0; bsel=0; storeenable=0; storesel=0; storedata=0; 
-							muxregsel = 0; pcjump = 0; pcselect = 0; operand = 0; 
-							alusel = 0; muxalusel = 0; start_alu = 0;}
-
-	/*
-	sfg test_0 { asel=0; bsel=0; storeenable=0; storesel=0; storedata=0; muxregsel = 0; pcjump = 0; pcselect = 0; operand = 0; alusel = 0; muxalusel = 0; start_alu = 0;}
-	sfg test_1 { asel=0; bsel=0; storeenable=0; storesel=0; storedata=0; muxregsel = 0; pcjump = 17; pcselect = regzero*2; operand = 0; alusel = 0; muxalusel = 0; start_alu = 0;}
-	sfg test_2 { asel=0; bsel=0; storeenable=0; storesel=0; storedata=0; muxregsel = 0; pcjump = 0; pcselect = 0; operand = 0; alusel = 0; muxalusel = 0; start_alu = 0;}
-	sfg test_3 { asel=0; bsel=0; storeenable=0; storesel=0; storedata=0; muxregsel = 0; pcjump = 0; pcselect = 0; operand = 0; alusel = 0; muxalusel = 0; start_alu = 0;}
-	*/
-
-
-}
-
-
-fsm f_testbench(testReg) {
-	initial s0;
-	state s1, s2;
-
-	@s0 (init) -> s1;
-	@s1 (compute) -> s2;
-	@s2 if (done) then (incpc) -> s1;
-		else (checkAluDone) -> s2;
-}
-
-dp disp(
-	in a : tc(32)
-) {
+	out muxalusel, alu_sel, jumpEnable : ns(1)	
+){
 	always {
-		$display($dec, "DISP ", a);
+
+		reg_storeEnable = (opcode == 4) ? 1 : 0;
+
+
+	}
+}
+
+dp CPU()
+{
+	//PC
+	sig pc_out : ns(32);
+	
+	// ALU
+	sig zero, neg : ns(1);
+	sig alu_out : tc(32);
+
+	// controller
+	sig jumpEnable : ns(1);
+	sig reg_storeEnable : ns(1);
+	sig alu_sel : ns(2);
+	sig muxregsel : ns(2);
+	sig muxalusel : ns(1);
+
+	// Mem
+	sig w, r, i: ns(1);
+	sig oData : ns(32);
+	sig opcode : ns(4);
+	sig R1, R2, R3 : ns(3);
+	sig imm : ns(19);
+
+	// Reg
+	sig reg_aOut, reg_bOut : tc(32);
+
+	// Mux
+	sig muxalu_out, muxreg_out : tc(32);
+
+
+
+	use PC(imm, jumpEnable, pc_out);
+	use instmem(pc_out, w, r, i, oData);
+	
+	use controller(opcode, zero, neg, reg_storeEnable, muxregsel, muxalusel, alu_sel, jumpEnable);
+
+	use alu( alu_sel, reg_aOut, muxalu_out, alu_out, zero, neg );
+	use register(R2, R3, reg_storeEnable, R1, muxreg_out, reg_aOut, reg_bOut);
+	use muxreg(muxregsel, imm, reg_aOut, alu_out, muxreg_out);
+	use muxalu(muxalusel, imm, reg_bOut, muxalu_out);
+
+	//use instmem(pc_out,0,1,0,odata)
+	always{
+		opcode = oData[31:28];
+		R1 = oData[27:25];
+		R2 = oData[24:22];
+		R3 = oData[21:19];
+		imm = oData[18:0];
+
+		// Instmem selectors
+		w = 0; r = 1; i = 0;
+
+
+		$display($bin, "Bla: ", opcode);
 	}
 }
 
 system myFirstSystem {
-	
+	CPU;
+
+	//disp(muxregout);
+
+}
+	/*
 	register(asel, bsel, storeenable, storesel, muxregout, a, b);
 	muxreg(muxregsel, storedata, a, aluout, muxregout);
 	muxalu(muxalusel, operand, b, muxaluout);
 	alu(a, muxaluout, alusel, start_alu, aluout, zero, neg, done_alu);
 	testReg(a, b, pc, zero, neg, done_alu, asel, bsel, storeenable, storesel, storedata, muxregsel, pcjump, pcselect, operand, alusel, muxalusel, start_alu);
 	PC(pcjump, pcselect, pc);
-	//disp(muxregout);
-
-}
+	*/
