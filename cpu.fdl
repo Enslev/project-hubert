@@ -1,17 +1,24 @@
 $option "vcd"
 dp PC(
 	in jumpTo : ns(10);
-	in select : ns(1);
+	in select : ns(2);
 	out cout  : ns(32)
 	){
 	reg c : ns(10);
 	
 	always{
 
-		c = (select == 1) ? jumpTo: c + 1;
-		cout = c;
+		c = (select == 1) ? jumpTo + 1 : 
+			(select == 2) ? c :	c + 1;
+		
+		cout = (select == 1) ? jumpTo : 
+				(select == 2) ? c-2 : c;
 
 	}
+	$trace(select, "traces/select.seq");
+	$trace(c, "traces/c.seq");
+	$trace(cout, "traces/cout.seq");
+
 }
 
 ipblock instmem(
@@ -141,7 +148,8 @@ dp controller(
 
 	out reg_storeEnable : ns(1); 
 	out muxregsel : ns(2);
-	out muxalusel, alu_sel, jumpEnable : ns(1)	
+	out muxalusel, alu_sel : ns(1);
+	out jumpEnable : ns(2)	
 ){
 	reg reg_zero, reg_neg : ns(1);
 	always {
@@ -179,7 +187,8 @@ dp controller(
 		muxalusel = (opcode == 8) ? 1 :
 					(opcode == 10) ? 1 : 0;
 		
-		jumpEnable = 	(opcode == 5) ? reg_zero : 
+		jumpEnable = 	(opcode == 1) ? 2 :
+						(opcode == 5) ? reg_zero : 
 						(opcode == 6) ? reg_neg : 
 						(opcode == 7) ? 1 : 0;
 
@@ -199,7 +208,7 @@ dp CPU()
 	sig alu_out : tc(32);
 
 	// controller
-	sig jumpEnable : ns(1);
+	sig jumpEnable : ns(2);
 	sig reg_storeEnable : ns(1);
 	sig alu_sel : ns(2);
 	sig muxregsel : ns(2);
@@ -250,7 +259,5 @@ dp CPU()
 
 system myFirstSystem {
 	CPU;
-
-	//disp(muxregout);
 
 }
