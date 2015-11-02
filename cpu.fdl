@@ -6,8 +6,6 @@ dp PC(
 	){
 	reg c : ns(10);
 	
-	$trace(cout, "traces/cout.seq");
-	
 	always{
 
 		c = (select == 1) ? jumpTo: c + 1;
@@ -123,6 +121,12 @@ dp register(
 	}
 
 	$trace(r1, "traces/reg_r1.seq");
+	$trace(r2, "traces/reg_r2.seq");
+	$trace(r3, "traces/reg_r3.seq");
+	$trace(r4, "traces/reg_r4.seq");
+	$trace(r5, "traces/reg_r5.seq");
+	$trace(r6, "traces/reg_r6.seq");
+	$trace(r7, "traces/reg_r7.seq");
 	$trace(storeenable, "traces/reg_storeenable.seq");
 	$trace(storedata, "traces/reg_storedata.seq");
 	$trace(storesel, "traces/reg_storesel.seq");
@@ -139,6 +143,7 @@ dp controller(
 	out muxregsel : ns(2);
 	out muxalusel, alu_sel, jumpEnable : ns(1)	
 ){
+	reg reg_zero, reg_neg : ns(1);
 	always {
 
 		/*
@@ -154,18 +159,8 @@ dp controller(
 		SUB:  10, reg_storeEnable = 1, alu_sel = 1, muxregsel = 2, muxalusel = 1
 		*/
 
-		/*
-		reg_storeEnable = (opcode == 3 | opcode == 4 | opcode == 8 | opcode == 9 | opcode == 10) ? 1 : 0;
-		alu_sel = (opcode 10) ? 1 : 0;
-		
-		muxregsel = (opcode == 3) ? 1 : 
-					(opcode == 8 | opcode == 9 | opcode == 10) 2 : 0;
-		muxalusel = (opcode == 8 | opcode == 10) ? 1 : 0;
-		
-		jumpEnable = 	(opcode == 5) ? zero : 
-						(opcode == 6) ? neg : 
-						(opcode == 7) ? 1 : 0;
-		*/
+		reg_zero = zero;
+		reg_neg = neg;
 
 
 		reg_storeEnable = 	(opcode == 3) ? 1 :
@@ -184,11 +179,14 @@ dp controller(
 		muxalusel = (opcode == 8) ? 1 :
 					(opcode == 10) ? 1 : 0;
 		
-		jumpEnable = 	(opcode == 5) ? zero : 
-						(opcode == 6) ? neg : 
+		jumpEnable = 	(opcode == 5) ? reg_zero : 
+						(opcode == 6) ? reg_neg : 
 						(opcode == 7) ? 1 : 0;
 
 	}
+
+	$trace(opcode, "traces/opcode.seq");
+	$trace(jumpEnable, "traces/jumpEnable.seq");
 }
 
 dp CPU()
@@ -244,8 +242,10 @@ dp CPU()
 		w = 0; r = 1; i = 0;
 
 
-		$display($bin, "Bla: ", opcode);
+		$display($bin, "opcode: ", opcode);
 	}
+	
+	$trace(pc_out, "traces/pc_out.seq");
 }
 
 system myFirstSystem {
@@ -254,11 +254,3 @@ system myFirstSystem {
 	//disp(muxregout);
 
 }
-	/*
-	register(asel, bsel, storeenable, storesel, muxregout, a, b);
-	muxreg(muxregsel, storedata, a, aluout, muxregout);
-	muxalu(muxalusel, operand, b, muxaluout);
-	alu(a, muxaluout, alusel, start_alu, aluout, zero, neg, done_alu);
-	testReg(a, b, pc, zero, neg, done_alu, asel, bsel, storeenable, storesel, storedata, muxregsel, pcjump, pcselect, operand, alusel, muxalusel, start_alu);
-	PC(pcjump, pcselect, pc);
-	*/
