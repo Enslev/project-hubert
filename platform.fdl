@@ -191,6 +191,7 @@ dp controller(
                 (opcode == 10) ? 1 : 0;
     
     pcSelect =    (opcode == 1 & dataoutrdy == 0) ? 2 :
+                  (opcode == 2 & dataoutrdy == 0) ? 2 :
                   (opcode == 5) ? reg_zero : 
                   (opcode == 6) ? reg_neg : 
                   (opcode == 7) ? 1 : 0;
@@ -273,9 +274,14 @@ dp CPU(
     //M_cmd = (opcode == 1) ? 0x20000000 : 0;
     //M_datainrdy =  (opcode == 1) ? 1 : 0;
 
-    M_datain = 0;
-    M_cmd = 0;
-    M_datainrdy = 0;
+    M_datain =  (opcode == 1) ? imm :
+                (opcode == 2) ? reg_aOut : 0;
+
+    M_cmd = (opcode == 1) ? 0x20000000  :
+            (opcode == 2) ? 0x28000000 + imm : 0;
+
+    M_datainrdy = (opcode == 1) ? 1 :
+                  (opcode == 2) ? 1 : 0;
 
 
     reg_opcode = opcode;
