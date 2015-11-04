@@ -274,11 +274,11 @@ dp CPU(
     //M_cmd = (opcode == 1) ? 0x20000000 : 0;
     //M_datainrdy =  (opcode == 1) ? 1 : 0;
 
-    M_datain =  (opcode == 1) ? imm :
+    M_datain =  (opcode == 1) ? reg_bOut :
                 (opcode == 2) ? reg_aOut : 0;
 
     M_cmd = (opcode == 1) ? 0x20000000  :
-            (opcode == 2) ? 0x28000000 + imm : 0;
+            (opcode == 2) ? 0x28000000 + reg_bOut : 0;
 
     M_datainrdy = (opcode == 1) ? 1 :
                   (opcode == 2) ? 1 : 0;
