@@ -1,5 +1,4 @@
 $option "vcd"
-
 dp PC(
   in jumpTo : ns(10);
   in select : ns(2);
@@ -9,14 +8,18 @@ dp PC(
   
   always{
 
-    c = (select == 1) ? jumpTo + 1 : 
+    c = (select == 1) ? jumpTo: 
         (select == 2) ? c : c + 1;
     
-    cout = (select == 1) ? jumpTo : c;
+    cout =  (select == 1) ? jumpTo: 
+            (select == 2) ? c : c + 1;  
 
   }
-}
+  $trace(select, "traces/select.seq");
+  $trace(c, "traces/c.seq");
+  //$trace(cout, "traces/cout.seq");
 
+}
 ipblock instmem(
   in address  : ns(5);
   in wr,rd  : ns(1);
@@ -220,7 +223,7 @@ dp CPU(
   sig alu_out : tc(32);
 
   // controller
-  sig pcSelect: ns(1);
+  sig pcSelect: ns(2);
   sig reg_storeEnable : ns(1);
   sig alu_sel : ns(2);
   sig muxregsel : ns(2);
@@ -263,13 +266,16 @@ dp CPU(
     w = 0; r = 1; i = 0;
 
     // Bus
-    M_datain = (opcode == 1) ? imm + 100: 0;
-    M_cmd = (opcode == 1) ? 536870912 : 0;
-    M_datainrdy = (opcode == 1) ? 1 : 0;
+    // loadcmd 0x20000000
+    // writecmd 0x28000000
 
-    //M_datain = 0;
-    //M_cmd = 0;
-    //M_datainrdy = 0;
+    //M_datain = (opcode == 1) ? 91 : 0;
+    //M_cmd = (opcode == 1) ? 0x20000000 : 0;
+    //M_datainrdy =  (opcode == 1) ? 1 : 0;
+
+    M_datain = 0;
+    M_cmd = 0;
+    M_datainrdy = 0;
 
 
     reg_opcode = opcode;
@@ -282,6 +288,7 @@ dp CPU(
   $trace(M_datainrdy, "traces/M_datainrdy.seq");
   $trace(M_dataout, "traces/M_dataout.seq");
   $trace(M_datain, "traces/M_datain.seq");
+  $trace(M_cmd, "traces/M_cmd.seq");
 
 }
 

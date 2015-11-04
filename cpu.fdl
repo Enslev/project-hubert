@@ -8,11 +8,11 @@ dp PC(
 	
 	always{
 
-		c = (select == 1) ? jumpTo + 1 : 
-			(select == 2) ? c :	c + 1;
+		c = (select == 1) ? jumpTo: 
+			(select == 2) ? c : c + 1;
 		
-		cout = (select == 1) ? jumpTo : 
-				(select == 2) ? c-2 : c;
+		cout = 	(select == 1) ? jumpTo: 
+				(select == 2) ? c : c + 1; 	
 
 	}
 	$trace(select, "traces/select.seq");
@@ -227,7 +227,7 @@ dp CPU()
 	// Mux
 	sig muxalu_out, muxreg_out : tc(32);
 
-
+	sig offset : ns(10);
 
 	use PC(imm, jumpEnable, pc_out);
 	use instmem(pc_out, w, r, i, oData);
@@ -241,6 +241,9 @@ dp CPU()
 
 	//use instmem(pc_out,0,1,0,odata)
 	always{
+
+		offset = pc_out + 1;
+
 		opcode = oData[31:28];
 		R1 = oData[27:25];
 		R2 = oData[24:22];
@@ -254,7 +257,7 @@ dp CPU()
 		$display($bin, "opcode: ", opcode);
 	}
 	
-	$trace(pc_out, "traces/pc_out.seq");
+	//$trace(pc_out, "traces/pc_out.seq");
 }
 
 system myFirstSystem {
