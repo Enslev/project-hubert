@@ -68,6 +68,8 @@ dp alu(
     N = (R < 0) ? 1 : 0;
     Z = (R == 0) ? 1 : 0;
   }
+  $trace(N, "traces/Neg.seq");
+  $trace(Z, "traces/Zero.seq");
 
 }
 
@@ -168,9 +170,13 @@ dp controller(
     SUB:  10, reg_storeEnable = 1, alu_sel = 1, muxregsel = 2, muxalusel = 1
     */
 
-    reg_zero = zero;
-    reg_neg = neg;
+    reg_zero =  (opcode == 8)   ? zero:
+                (opcode == 9)   ? zero:
+                (opcode == 10)  ? zero: reg_zero;
 
+    reg_neg =   (opcode == 8)   ? neg:
+                (opcode == 9)   ? neg:
+                (opcode == 10)  ? neg: reg_neg;
 
     reg_storeEnable =   (opcode == 1) ? dataoutrdy :
                         (opcode == 3) ? 1 :
