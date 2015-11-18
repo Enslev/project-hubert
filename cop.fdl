@@ -1,0 +1,145 @@
+dp add(
+	in x, y : tc(32);
+	out o : tc(32)
+	) { 
+	always {
+		o = x + y;
+	}
+}
+
+dp sub(
+	in x, y : tc(32);
+	out o : tc(32)
+	) { 
+	always {
+		o = x - y;
+	}
+}
+
+dp div32(
+	in x : tc(32);
+	out o : tc(32)
+	) { 
+	always {
+		//o = x >> 5;
+		o = x[31: 5];
+	}
+}
+
+dp regs (
+	in enable : ns(1);
+	in datain : tc(32);
+	out regout : tc(32)
+) {
+	reg r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, 
+		r11, r12, r13, r14, r15, r16, r17, r18, r19, r20,
+		r21, r22, r23, r24, r25, r26, r27, r28, r29, r30,
+		r31, r32 : tc(32);
+
+	always {
+
+		r1 = enable ? datain : r1;
+		r2 = enable ? r1 : r2;
+		r3 = enable ? r2 : r3;
+		r4 = enable ? r3 : r4;
+		r5 = enable ? r4 : r5;
+		r6 = enable ? r5 : r6;
+		r7 = enable ? r6 : r7;
+		r8 = enable ? r7 : r8;
+		r9 = enable ? r8 : r9;
+		r10 = enable ? r9 : r10;
+		r11 = enable ? r10 : r11;
+		r12 = enable ? r11 : r12;
+		r13 = enable ? r12 : r13;
+		r14 = enable ? r13 : r14;
+		r15 = enable ? r14 : r15;
+		r16 = enable ? r15 : r16;
+		r17 = enable ? r16 : r17;
+		r18 = enable ? r17 : r18;
+		r19 = enable ? r18 : r19;
+		r20 = enable ? r19 : r20;
+		r21 = enable ? r20 : r21;
+		r22 = enable ? r21 : r22;
+		r23 = enable ? r22 : r23;
+		r24 = enable ? r23 : r24;
+		r25 = enable ? r24 : r25;
+		r26 = enable ? r25 : r26;
+		r27 = enable ? r26 : r27;
+		r28 = enable ? r27 : r28;
+		r29 = enable ? r28 : r29;
+		r30 = enable ? r29 : r30;
+		r31 = enable ? r30 : r31;
+		r32 = enable ? r31 : r32;
+
+		regout = r32;
+		
+
+	}
+
+}
+
+dp mwi(
+	in datain : tc(32);
+	in cmdin : ns(32);
+	in datainrdy : ns(1);
+	out dataout : tc(32);
+	out dataoutrdy : ns(1)
+) {
+	sig addout, subout, x32 : tc(32);
+	sig cmd : ns(28);
+	sig enable : ns(1);
+
+	reg sum : tc(32);
+
+	use add(datain, sum, addout);
+	use sub(addout, x32, subout);
+	use div32(subout, dataout);
+	use regs(enable, datain, x32);
+
+	always {
+		// Check command, not target id
+		cmd = cmdin[27:0];
+		$display($dec, datainrdy);
+		enable = (datainrdy == 1 & cmd == 1) ? 1 : 0;
+		dataoutrdy = (datainrdy == 1 & cmd == 1) ? 1 : 0;
+
+		sum = enable ? subout : sum;
+
+	}
+
+}
+
+dp test (
+	in dataout : tc(32);
+	in dataoutrdy : ns(1);
+	out datain : tc(32);
+	out cmdin : ns(32);
+	out datainrdy : ns(1)
+) {
+
+	always {
+		$display($dec, "dataoutrdy: ", dataoutrdy, " - dataout: ", dataout);
+	}
+
+	sfg test1{datain = 32; cmdin = 0xf0000001; datainrdy = 1;}
+	sfg test2{datain = 32; cmdin = 0xf0000001; datainrdy = 1;}
+	sfg test3{datain = 32; cmdin = 0xf0000001; datainrdy = 1;}
+
+}
+
+fsm f_testbench(test) {
+	initial s0;
+	state s1, s2;
+
+	@s0 (test1) -> s1;
+	@s1 (test2) -> s2;
+	@s2 (test3) -> s0;
+
+}
+
+system cop {
+
+	test(dataout, outrdy, datain, cmdin, datainrdy);
+	mwi(datain, cmdin, datainrdy, dataout, outrdy);
+
+}
