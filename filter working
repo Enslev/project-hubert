@@ -1,0 +1,92 @@
+dp Filter(
+  in datain : ns(32); // tc
+  in cmd : ns(32);
+  in datainrdy : ns(1);
+  out dataout : ns(32); // tc
+  out dataoutrdy : ns(1);
+  in stall : ns(1)
+  // out FilterOut : tc(32)
+) {
+  sig addout, subout, x32, divout : ns(32);
+  //sig command : ns(28);
+  //sig enable : ns(1);
+
+  reg sum : ns(32);
+
+  reg datainrdyr : ns(1);
+  reg cmdr : ns(32);
+  reg datainr : ns(32);
+  reg dataoutr : ns(32);
+  reg stallr : ns(1);
+
+  use addCO(datain, sum, addout);
+  use subCO(addout, x32, subout);
+  use div32(subout, divout);
+  use regs(datainrdy, datain, x32);
+
+  always {
+    /*
+    // Check command, not target id
+    cmd = cmd[27:0];
+    $display($dec, datainrdy);
+    //$display($dec, datain);
+    $display($dec, dataoutrdy);
+    $display($dec, stall);
+    enable = (datainrdy == 1 & cmd == 1 & stall == 0) ? 1 : 0;
+    dataoutrdy = (datainrdy == 1 & cmd == 1 & stall == 0) ? 1 : 0;
+
+    sum = enable ? subout : sum;
+    */
+    stallr = stall;
+    //dataoutr = divout;
+    
+    //dataout = dataoutr;
+
+
+  }
+
+  
+  sfg captureData{
+       dataoutrdy = 0;
+       datainrdyr = datainrdy;
+       datainr = datain;
+       cmdr = cmd;
+       dataoutr = 17;
+       dataout = 6;
+       //enable = 1;
+   }
+   
+   sfg awaithandshake{
+      dataoutrdy = 0;
+      dataoutr = dataoutr;
+      dataout = 5;
+      
+      //enable = 0;
+   }
+   
+   sfg resetAndSignalRdy{
+     dataoutrdy = 1;
+     datainrdyr = 0;
+     dataoutr = 0;
+     dataout = dataoutr;
+     //enable = 0;
+   }
+
+    $trace(dataoutr, "traces/dataoutr.seq");        
+    $trace(dataout, "traces/dataout.seq");
+    $trace(dataoutrdy, "traces/dataoutrdy.seq");
+
+}
+
+fsm Filter_cntrl(Filter){
+   initial s0;
+   state s1, s2;
+   
+   @s0 if (datainrdyr == 1 & stallr == 0) then (resetAndSignalRdy) -> s0;
+       else if (datainrdyr == 1 & stallr == 1) then (awaithandshake) -> s1;
+       else (captureData) -> s0;
+   @s1 (awaithandshake) -> s2;
+   @s2 if (stallr == 0) then (resetAndSignalRdy) -> s0;
+       else (awaithandshake) -> s2;
+       
+}
