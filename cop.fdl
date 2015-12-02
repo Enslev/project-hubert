@@ -93,13 +93,12 @@ dp mwi(
 
 	use add(datain, sum, addout);
 	use sub(addout, x32, subout);
-	use div32(subout, dataout);
+	use div32(sum, dataout);
 	use regs(enable, datain, x32);
 
 	always {
 		// Check command, not target id
 		cmd = cmdin[27:0];
-		$display($dec, datainrdy);
 		enable = (datainrdy == 1 & cmd == 1) ? 1 : 0;
 		dataoutrdy = (datainrdy == 1 & cmd == 1) ? 1 : 0;
 
@@ -121,9 +120,9 @@ dp test (
 		$display($dec, "dataoutrdy: ", dataoutrdy, " - dataout: ", dataout);
 	}
 
-	sfg test1{datain = 32; cmdin = 0xf0000001; datainrdy = 1;}
-	sfg test2{datain = 32; cmdin = 0xf0000001; datainrdy = 1;}
-	sfg test3{datain = 32; cmdin = 0xf0000001; datainrdy = 1;}
+	sfg test1{datain = 654; cmdin = 0xf0000001; datainrdy = 1;}
+	sfg test2{datain = 654; cmdin = 0xf0000001; datainrdy = 1;}
+	sfg test3{datain = 654; cmdin = 0xf0000001; datainrdy = 1;}
 
 }
 

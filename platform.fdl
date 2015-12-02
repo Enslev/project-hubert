@@ -419,73 +419,40 @@ dp Filter(
   in stall : ns(1)
   // out FilterOut : tc(32)
 ) {
-  sig addout, subout, x32, divout : ns(32);
-  //sig command : ns(28);
-  //sig enable : ns(1);
-
+  sig addout, subout, x32 : ns(32);
   reg sum : ns(32);
-
-  reg datainrdyr : ns(1);
-  //reg cmdr : ns(32);
-  //reg datainr : ns(32);
-  reg dataoutr : ns(32);
-  reg stallr : ns(1);
 
   use addCO(datain, sum, addout);
   use subCO(addout, x32, subout);
-  use div32(subout, divout);
+  use div32(sum, dataout);
   use regs(datainrdy, datain, x32);
 
+  reg hasBeenRdy : ns(1);
+
+
   always {
-    stallr = stall;
-    datainrdyr = datainrdy;
+    dataoutrdy = (hasBeenRdy == 1 & stall == 0) ? 1 : 0;
+
+    
+    hasBeenRdy =  (datainrdy == 1) ? 1 :
+                  (stall == 0) ? 0 :
+                  hasBeenRdy;
+    
+
+
+    sum = (datainrdy == 1) ? subout : sum;
 
   }
-
-  sfg sendDataImm{
-    dataout = divout;
-    dataoutrdy = 1;
-  }
-
-  sfg sendData{
-    dataout = dataoutr;
-    dataoutrdy = 1;
-    dataoutr = 0;
-  }
-
-  sfg awaithandshake{
-    dataout = 17;
-    dataoutr = divout;
-    dataoutrdy = 0;
-  }
-
-  sfg nothing{
-    dataout = 0;
-    dataoutr = dataoutr;
-    dataoutrdy = 0;
-  }
-
-  
-    $trace(dataoutr, "traces/dataoutr.seq");        
-    $trace(dataout, "traces/dataout.seq");
-    $trace(dataoutrdy, "traces/dataoutrdy.seq");
-    $trace(datain, "traces/datain.seq");
-    $trace(divout, "traces/divout.seq");
+ 
+  $trace(dataout, "traces/dataout.seq");
+  $trace(dataoutrdy, "traces/dataoutrdy.seq");
+  $trace(datain, "traces/datain.seq");
+  $trace(sum, "traces/sum.seq");
+  $trace(stall, "traces/stall.seq");
+  $trace(hasBeenRdy, "traces/hasBeenRdy.seq");
+  $trace(datainrdy, "traces/datainrdy.seq");
 
 }
-
-fsm Filter_cntrl(Filter){  
-  initial s0;
-  state s1, s2;
-
-  @s0 if (datainrdyr == 1 & stallr == 0) then (sendDataImm) -> s0;
-      else if (datainrdyr == 1 & stallr == 1) then (awaithandshake) -> s1;
-      else (nothing) -> s0;
-  @s1 (nothing) -> s2;
-  @s2 if (stallr == 0) then (sendData) -> s0;
-      else (nothing) -> s2; 
-}
-
 
 ////////////////////////////
 // Bus
